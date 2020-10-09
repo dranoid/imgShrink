@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="script-src 'self' 'unsafe-inline'"
+    />
+    <link rel="stylesheet" href="css/all.min.css" />
+    <link rel="stylesheet" href="css/materialize.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+
+    <title>ImageShrink</title>
+  </head>
+  <body>
+    <div class="container center-align">
+      <h3><i class="fas fa-images"></i> ImageShrink</h3>
+      <p>Choose an image to resize</p>
+      <form id="image-form">
+        <div class="file-field input-field">
+          <div class="btn">
+            <span>Browse</span>
+            <input type="file" id="img" />
+          </div>
+
+          <div class="file-path-wrapper">
+            <input
+              type="text"
+              name=""
+              id=""
+              class="file-path validate"
+              placeholder="Upload File"
+            />
+          </div>
+        </div>
+        <p>
+          <strong>Quality:</strong>
+          <em>the lower the quality, the smaller the file size</em>
+        </p>
+        <p class="range-field">
+          <input type="range" min="0" max="100" id="slider" />
+        </p>
+        <input type="submit" value="Resize" class="btn black" />
+      </form>
+      <div class="card output waves-effect waves-teal" id="disp-card">
+        <div class="card-content">
+          Output Path: <span id="output-path"></span
+          ><span id="is-default"><em>*default*</em></span>
+          <em>Click to choose path</em>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/materialize.min.js"></script>
+    <script>
+      const path = require("path");
+      const os = require("os");
+      const { ipcRenderer } = require("electron");
+
+      const form = document.getElementById("image-form");
+      const slider = document.getElementById("slider");
+      const img = document.getElementById("img");
+      const displayCard = document.getElementById("disp-card");
+      const outPath = document.getElementById("output-path");
+      const isDefault = document.getElementById("is-default");
+
+      //.innerHTML = `${path.join(os.homedir(),"imageshrink")} `;
+
+      ipcRenderer.on("set-path", (event, dPath) => {
+        outPath.innerHTML = dPath;
+      });
+
+      displayCard.addEventListener("click", (e) => {
+        ipcRenderer.send("choose-path");
+      });
+      ipcRenderer.on("chosen-path", (e, filePath) => {
+        if (filePath[0] != undefined) {
+          outPath.innerHTML = filePath[0];
+          isDefault.style.display = "none";
+        } else {
+          outPath.innerHTML = "Please select a valid file path!";
+          isDefault.style.display = "none";
+        }
+      });
+
+      //onSubmit
+      form.addEventListener("submit", (e) => {
+        //validation against not selecting images
+        if (img.files[0] == undefined) {
+          e.preventDefault();
+          M.toast({
+            html: "Please select an image to resize",
+          });
+        }
+
+        if (outPath.innerHTML != "Please select a valid file path!") {
+          e.preventDefault();
+
+          const imgPath = img.files[0].path;
+          const quality = slider.value;
+          const destination = outPath.innerHTML;
+
+          ipcRenderer.send("image:minimize", {
+            imgPath,
+            quality,
+            destination,
+          });
+        } else {
+          //validation against not selecting a file path
+          e.preventDefault();
+          M.toast({
+            html: "Please select a valid file path",
+          });
+        }
+      });
+
+      //on done
+      ipcRenderer.on("Image:Done", () => {
+        M.toast({
+          html: `image resized to ${slider.value}% quality`,
+        });
+      });
+    </script>
+  </body>
+</html>

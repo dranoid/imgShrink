@@ -1,0 +1,37 @@
+.container {
+  width: 400px;
+  margin-top: 70px;
+  padding: 0 20px;
+}
+
+.setting {
+  margin-top: 40px;
+  /* margin-bottom: 20px; */
+}
+
+.settings-container {
+  width: 400px;
+  margin-top: 30px;
+  padding: 0 20px;
+}
+
+.about {
+  width: 100%;
+}
+
+.btn {
+  width: 100%;
+}
+
+.output {
+  margin-top: 40px;
+  cursor: pointer;
+}
+
+#output-path {
+  font-weight: bold;
+}
+
+#is-default {
+  color: grey;
+}

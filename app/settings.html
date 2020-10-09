@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="script-src 'self' 'unsafe-inline'"
+    />
+
+    <link rel="stylesheet" href="css/all.min.css" />
+    <link rel="stylesheet" href="css/materialize.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+
+    <title>Settings</title>
+  </head>
+  <body>
+    <div class="settings-container about center-align">
+      <h5 class="left-align"><i class="fas fa-cogs"></i> Settings</h5>
+      <div class="divider"></div>
+
+      <p>App will reload after settings have been saved or restored</p>
+
+      <div class="row">
+        <div class="input-field">
+          <span
+            class="waves-effect waves-light btn-small col s3"
+            id="default-dir"
+            >Folder</span
+          >
+          <div class="col s1"></div>
+          <input
+            type="text"
+            class="col s8"
+            name=""
+            id="path-text"
+            placeholder="Default path goes here..."
+          />
+        </div>
+      </div>
+
+      <!-- <div class="left-align setting">
+        <a class="waves-effect waves-light btn-small">Button</a>
+      </div> -->
+      <div class="row">
+        <label for="open-file" class="">
+          <input
+            type="checkbox"
+            class="filled-in setting col s1"
+            checked="checked"
+            id="open-file"
+          />
+          <span class="black-text col s11"
+            >Open File in folder after shrinking</span
+          >
+        </label>
+      </div>
+
+      <div class="row">
+        <a class="waves-effect waves-teal btn-flat" id="restore-default"
+          >Restore</a
+        >
+        <a class="waves-effect waves-light btn-small" id="save-setting">Save</a>
+      </div>
+    </div>
+    <script src="js/materialize.min.js"></script>
+    <script>
+      const { ipcRenderer } = require("electron");
+      const setDefaultDir = document.getElementById("default-dir");
+      const pathText = document.getElementById("path-text");
+      const checkBox = document.getElementById("open-file");
+      const btnRestore = document.getElementById("restore-default");
+      const btnSave = document.getElementById("save-setting");
+
+      ipcRenderer.on("preset-loadout", (event, settings) => {
+        const { openFile, defaultPath } = settings;
+        checkBox.checked = openFile;
+        pathText.value = defaultPath;
+      });
+
+      setDefaultDir.addEventListener("click", (e) => {
+        e.preventDefault();
+        ipcRenderer.send("get-default-path");
+      });
+
+      ipcRenderer.on("default-path", (event, path) => {
+        pathText.value = path[0];
+      });
+
+      btnRestore.addEventListener("click", (e) => {
+        e.preventDefault();
+        ipcRenderer.send("restore-default");
+      });
+
+      ipcRenderer.on("default-object", (event, setting) => {
+        const { openFile, path } = setting;
+        checkBox.checked = openFile;
+        pathText.value = path;
+        M.toast({
+          html: "Save after restoring defaults",
+        });
+      });
+
+      btnSave.addEventListener("click", (e) => {
+        ipcRenderer.send("save-settings", {
+          path: pathText.value,
+          openFileinFolder: checkBox.checked,
+        });
+      });
+    </script>
+  </body>
+</html>
+<!-- <label>
+        <input type="checkbox" class="filled-in" checked="checked" />
+        <span>Filled in</span>
+      </label> -->
